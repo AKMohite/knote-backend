@@ -1,9 +1,10 @@
 package com.mak.knote.backend
 
+import com.mak.knote.backend.base.configureStatusPages
 import com.mak.knote.backend.plugins.configureRouting
 import com.mak.knote.backend.plugins.configureSecurity
 import com.mak.knote.backend.plugins.configureSerialization
-import io.ktor.server.application.*
+import io.ktor.server.application.Application
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)
@@ -13,4 +14,5 @@ fun Application.module() {
     configureSerialization()
     configureSecurity()
     configureRouting()
+    configureStatusPages()
 }
