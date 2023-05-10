@@ -1,9 +1,12 @@
 package com.mak.knote.backend.di.domain
 
-import com.mak.knote.backend.feature.auth.LoginUseCase
+import com.mak.knote.backend.di.repository.IRepositoryProvider
+import com.mak.knote.backend.feature.auth.domain.LoginUseCase
 
-internal class DomainProvider : IDomainProvider {
+internal class DomainProvider(
+    private val repositoryProvider: IRepositoryProvider
+) : IDomainProvider {
     override fun provideLoginUserUseCase(): LoginUseCase {
-        return DomainLocator.provideLoginUserUseCase()
+        return DomainLocator.provideLoginUserUseCase(repositoryProvider.provideAuthRepository())
     }
 }
