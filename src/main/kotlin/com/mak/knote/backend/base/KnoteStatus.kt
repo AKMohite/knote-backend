@@ -9,26 +9,26 @@ import io.ktor.server.response.respond
 fun Application.configureStatusPages() {
     install(StatusPages) {
         exception<AuthenticationException> { call, cause ->
-            call.respond(ExceptionResponse(HttpStatusCode.Unauthorized, cause.message.toString()))
+            call.respond(HttpStatusCode.Unauthorized, ExceptionResponse(HttpStatusCode.Unauthorized, cause.message.toString()))
         }
         exception<AuthorizationException> { call, cause ->
-            call.respond(ExceptionResponse(HttpStatusCode.Forbidden, cause.message.toString()))
+            call.respond(HttpStatusCode.Forbidden, ExceptionResponse(HttpStatusCode.Forbidden, cause.message.toString()))
         }
         exception<BadRequestException> { call, cause ->
-            call.respond(ExceptionResponse(HttpStatusCode.BadRequest, cause.message.toString()))
+            call.respond(HttpStatusCode.BadRequest, ExceptionResponse(HttpStatusCode.BadRequest, cause.message.toString()))
         }
         exception<NotFoundException> { call, cause ->
-            call.respond(ExceptionResponse(HttpStatusCode.NotFound, cause.message.toString()))
+            call.respond(HttpStatusCode.NotFound, ExceptionResponse(HttpStatusCode.NotFound, cause.message.toString()))
         }
         exception<ConflictException> { call, cause ->
-            call.respond(ExceptionResponse(HttpStatusCode.Conflict, cause.message.toString()))
+            call.respond(HttpStatusCode.Conflict, ExceptionResponse(HttpStatusCode.Conflict, cause.message.toString()))
         }
         exception<SomethingWentWrongException> { call, cause ->
-            call.respond(ExceptionResponse(HttpStatusCode.ExpectationFailed, cause.message.toString()))
+            call.respond(HttpStatusCode.Conflict, ExceptionResponse(HttpStatusCode.ExpectationFailed, cause.message.toString()))
         }
 
         exception<Throwable> { call, cause ->
-            call.respond(ExceptionResponse(HttpStatusCode.InternalServerError, cause.message.toString()))
+            call.respond(HttpStatusCode.InternalServerError, ExceptionResponse(HttpStatusCode.InternalServerError, cause.message.toString()))
         }
     }
 }
