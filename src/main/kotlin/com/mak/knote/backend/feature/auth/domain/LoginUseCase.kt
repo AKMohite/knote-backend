@@ -7,8 +7,8 @@ import com.mak.knote.backend.feature.auth.repository.IAuthRepository
 
 internal class LoginUseCase(
     private val authRepository: IAuthRepository
-) : BaseUseCase<LoginRequest, Any> {
-    override suspend operator fun invoke(request: LoginRequest): BaseResponse<Any> {
+) : BaseUseCase<LoginRequest, String> {
+    override suspend operator fun invoke(request: LoginRequest): BaseResponse<String> {
         return authRepository.loginUser(request)
     }
 }

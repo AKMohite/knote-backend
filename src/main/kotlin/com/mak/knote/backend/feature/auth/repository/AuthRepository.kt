@@ -27,7 +27,7 @@ internal class AuthRepository(
         private const val SOMETHING_WENT_WRONG = "Something went wrong. Please try again"
     }
 
-    override suspend fun loginUser(request: LoginRequest): BaseResponse<Any> {
+    override suspend fun loginUser(request: LoginRequest): BaseResponse<String> {
         return if (checkIfUsersExist(request.email)) {
             val user: User? = userApiService.findUserByEmail(request.email)
             if (user != null) {
