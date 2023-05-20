@@ -8,7 +8,9 @@ import com.mak.knote.backend.feature.auth.LoginRequest
 import com.mak.knote.backend.feature.user.User
 import com.mak.knote.backend.feature.user.service.IUserApiService
 import com.mak.knote.backend.util.checkHashForPassword
+import com.mak.knote.backend.util.getHashWithSalt
 import io.ktor.http.HttpStatusCode
+import java.util.*
 
 internal class AuthRepository(
     private val userApiService: IUserApiService,
@@ -27,10 +29,34 @@ internal class AuthRepository(
         private const val SOMETHING_WENT_WRONG = "Something went wrong. Please try again"
     }
 
+    override suspend fun signup(authRequest: LoginRequest): BaseResponse<String> {
+        return if (checkIfUsersExist(authRequest.email)) {
+            throw exceptionHandler.respondWithAlreadyExistException(USER_ALREADY_EXIST_MESSAGE)
+        } else {
+            val hashPassword = getHashWithSalt(authRequest.password)
+            val nowInstant = Date().toInstant().toString()
+            val user = User(
+                email = authRequest.email,
+                passwordHash = hashPassword,
+                createdAt = nowInstant,
+                updatedAt = nowInstant
+            )
+            val responseIsSuccessful = userApiService.insertUser(user)
+            when {
+                responseIsSuccessful -> SuccessResponse(
+                    data = jwtConfig.makeAccessToken(user.id),
+                    statusCode = HttpStatusCode.Created
+                )
+
+                else -> throw exceptionHandler.respondWithGenericException(SOMETHING_WENT_WRONG)
+            }
+        }
+    }
+
     override suspend fun loginUser(request: LoginRequest): BaseResponse<String> {
-        return if (checkIfUsersExist(request.email)) {
+        return if (checkIfUsersExist(request.email)) { // TODO duplicate condns
             val user: User? = userApiService.findUserByEmail(request.email)
-            if (user != null) {
+            if (user != null) { // TODO duplicate condns
                 val hashedPasswordIsSame = user.passwordHash?.let { checkHashForPassword(request.password, it) }
                 when (hashedPasswordIsSame) {
                     true -> SuccessResponse(

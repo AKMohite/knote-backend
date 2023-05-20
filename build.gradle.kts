@@ -28,6 +28,8 @@ dependencies {
     implementation("io.ktor:ktor-server-host-common-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-status-pages-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth:$ktor_version")
+    implementation("org.litote.kmongo:kmongo:4.9.0")
+    implementation("org.litote.kmongo:kmongo-coroutine:4.9.0")
     implementation("commons-codec:commons-codec:1.15")
     implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")

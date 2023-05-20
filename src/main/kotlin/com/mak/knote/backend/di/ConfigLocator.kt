@@ -7,7 +7,7 @@ import com.mak.knote.backend.base.http.IExceptionHandler
 internal object ConfigLocator {
 
     fun provideJwtConfig() {
-        return JwtConfig.initialize("ktor-backend")
+        return JwtConfig.initialize("ktor-backend-knote-not-so-secret")
     }
 
     fun provideExceptionHandler(): IExceptionHandler {

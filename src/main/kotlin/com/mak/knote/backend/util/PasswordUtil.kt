@@ -13,6 +13,7 @@ internal fun getHashWithSalt(stringToHash: String, saltLength: Int = 32): String
 
 internal fun checkHashForPassword(password: String, hashWithSalt: String): Boolean {
     val hashAndSalt = hashWithSalt.split(":")
+    if (hashAndSalt.count() != 2) return false
     val salt = hashAndSalt[0]
     val hash = hashAndSalt[1]
     val passwordHash = DigestUtils.sha256Hex("$salt$password")
