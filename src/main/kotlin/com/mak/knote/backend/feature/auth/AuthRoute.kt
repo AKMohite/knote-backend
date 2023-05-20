@@ -16,11 +16,6 @@ internal fun Routing.authRoutes(domainProvider: IDomainProvider) {
         val request = kotlin.runCatching { call.receiveNullable<LoginRequest>() }.getOrNull() ?: kotlin.run {
             throw BadRequestException("Bad request")
         }
-
-        if (request.email.isBlank() || request.password.isBlank()) {
-            throw BadRequestException("Bad request")
-        }
-
         val response = domainProvider.provideLoginUserUseCase().invoke(request)
         call.respond(response)
     }
@@ -29,11 +24,6 @@ internal fun Routing.authRoutes(domainProvider: IDomainProvider) {
         val request = kotlin.runCatching { call.receiveNullable<LoginRequest>() }.getOrNull() ?: kotlin.run {
             throw BadRequestException("Bad request")
         }
-
-        if (request.email.isBlank() || request.password.isBlank()) {
-            throw BadRequestException("Bad request")
-        }
-
         val response = domainProvider.provideSignupUserUseCase().invoke(request)
         call.respond(HttpStatusCode.Created, response)
     }
