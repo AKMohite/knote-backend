@@ -58,6 +58,38 @@ internal class NotesRepository(
         }
     }
 
+    override suspend fun updateNote(userId: String, noteId: String, noteDto: NoteDTO): BaseResponse<NoteDTO> {
+        val (note, exist) = checkIfNoteExists(noteId)
+        if (exist && note?.createdBy == userId) {
+            val noteToUpdate = note.copy(
+                title = noteDto.title,
+                description = noteDto.description,
+                color = noteDto.color,
+                updatedAt = noteDto.updatedAt ?: Date().toInstant().toString()
+            )
+            val isUpdated = notesApiService.updateNote(noteToUpdate)
+            if (isUpdated) {
+                val updatedNote = with(noteToUpdate) {
+                    NoteDTO(
+                        id = id,
+                        title = title,
+                        description = description,
+                        color = color,
+//                        createdBy = createdBy,
+                        isDeleted = isDeleted,
+                        createdAt = createdAt,
+                        updatedAt = updatedAt
+                    )
+                }
+                return SuccessResponse(HttpStatusCode.OK, updatedNote)
+            } else {
+                throw exceptionHandler.respondWithSomethingWentWrongException()
+            }
+        } else {
+            throw exceptionHandler.respondWithUnauthorizedException(NOT_AUTHORIZED)
+        }
+    }
+
     override suspend fun getNotesForUser(userId: String, page: Int, limit: Int): BaseResponse<List<NoteDTO>> {
         if (page > ZERO && limit > ZERO) {
             val (notes, totalCount) = notesApiService.getNotesForUser(userId, page, limit)
@@ -73,6 +105,11 @@ internal class NotesRepository(
         } else {
             throw exceptionHandler.respondWithGenericException(PLEASE_CHECK_THE_PARAMS)
         }
+    }
+
+    private suspend fun checkIfNoteExists(noteId: String?): Pair<Note?, Boolean> {
+        val note = notesApiService.getNoteById(noteId)
+        return Pair(note, note != null)
     }
 
 }

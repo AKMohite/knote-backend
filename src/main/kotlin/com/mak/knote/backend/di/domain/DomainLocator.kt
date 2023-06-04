@@ -6,6 +6,7 @@ import com.mak.knote.backend.feature.auth.domain.SignupUseCase
 import com.mak.knote.backend.feature.auth.repository.IAuthRepository
 import com.mak.knote.backend.feature.notes.domain.CreateNoteUseCase
 import com.mak.knote.backend.feature.notes.domain.GetNoteUseCase
+import com.mak.knote.backend.feature.notes.domain.UpdateNoteUseCase
 import com.mak.knote.backend.feature.notes.repository.INotesRepository
 
 internal object DomainLocator {
@@ -27,6 +28,10 @@ internal object DomainLocator {
 
     fun provideCreateNoteUseCase(repository: INotesRepository): CreateNoteUseCase {
         return CreateNoteUseCase(repository)
+    }
+
+    fun provideUpdateNoteUseCase(repository: INotesRepository): UpdateNoteUseCase {
+        return UpdateNoteUseCase(repository)
     }
 
 

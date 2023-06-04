@@ -5,6 +5,7 @@ import com.mak.knote.backend.feature.auth.domain.LoginUseCase
 import com.mak.knote.backend.feature.auth.domain.SignupUseCase
 import com.mak.knote.backend.feature.notes.domain.CreateNoteUseCase
 import com.mak.knote.backend.feature.notes.domain.GetNoteUseCase
+import com.mak.knote.backend.feature.notes.domain.UpdateNoteUseCase
 
 internal class DomainProvider(
     private val repositoryProvider: IRepositoryProvider
@@ -23,5 +24,9 @@ internal class DomainProvider(
 
     override fun provideCreateNoteUseCase(): CreateNoteUseCase {
         return DomainLocator.provideCreateNoteUseCase(repositoryProvider.provideNoteRepository())
+    }
+
+    override fun provideUpdateNoteUseCase(): UpdateNoteUseCase {
+        return DomainLocator.provideUpdateNoteUseCase(repositoryProvider.provideNoteRepository())
     }
 }

@@ -44,4 +44,13 @@ class NotesApiService(
             count
         )
     }
+
+    override suspend fun getNoteById(noteId: String?): Note? {
+        return noteId?.let { noteCollection.findOneById(it) }
+    }
+
+    override suspend fun updateNote(noteToUpdate: Note): Boolean {
+        return noteCollection.updateOneById(noteToUpdate.id, noteToUpdate).wasAcknowledged()
+    }
+
 }
