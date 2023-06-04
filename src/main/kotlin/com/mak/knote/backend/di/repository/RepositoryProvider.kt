@@ -14,6 +14,8 @@ internal class RepositoryProvider(
     }
 
     override fun provideNoteRepository(): INotesRepository {
-        return RepositoryLocator.provideNotesRepository()
+        return RepositoryLocator.provideNotesRepository(
+            serviceProvider.provideNoteApiService()
+        )
     }
 }

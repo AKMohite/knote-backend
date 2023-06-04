@@ -1,5 +1,6 @@
 package com.mak.knote.backend.base
 
+import com.mak.knote.backend.feature.notes.Note
 import com.mak.knote.backend.feature.user.User
 import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
@@ -19,5 +20,8 @@ internal class KnoteDB(
         get() = mongoClient.getDatabase(initializeName)
 
     override val userCollection: CoroutineCollection<User>
+        get() = database.getCollection()
+
+    override val noteCollection: CoroutineCollection<Note>
         get() = database.getCollection()
 }

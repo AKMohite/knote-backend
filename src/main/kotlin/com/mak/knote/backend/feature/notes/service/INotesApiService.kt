@@ -4,4 +4,5 @@ import com.mak.knote.backend.feature.notes.Note
 
 interface INotesApiService {
     suspend fun getNotesForUser(userId: String, page: Int, limit: Int): Pair<List<Note>, Int>
+    suspend fun insertNote(userId: String, note: Note): Boolean
 }

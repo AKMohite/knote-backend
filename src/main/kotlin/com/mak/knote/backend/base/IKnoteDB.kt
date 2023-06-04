@@ -1,5 +1,6 @@
 package com.mak.knote.backend.base
 
+import com.mak.knote.backend.feature.notes.Note
 import com.mak.knote.backend.feature.user.User
 import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
@@ -14,4 +15,6 @@ internal interface IKnoteDB {
     val database: CoroutineDatabase
 
     val userCollection: CoroutineCollection<User>
+
+    val noteCollection: CoroutineCollection<Note>
 }

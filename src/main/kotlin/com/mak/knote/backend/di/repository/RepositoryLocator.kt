@@ -7,6 +7,7 @@ import com.mak.knote.backend.feature.auth.repository.AuthRepository
 import com.mak.knote.backend.feature.auth.repository.IAuthRepository
 import com.mak.knote.backend.feature.notes.repository.INotesRepository
 import com.mak.knote.backend.feature.notes.repository.NotesRepository
+import com.mak.knote.backend.feature.notes.service.INotesApiService
 import com.mak.knote.backend.feature.user.service.IUserApiService
 
 internal object RepositoryLocator {
@@ -22,8 +23,11 @@ internal object RepositoryLocator {
         return RepositoryProvider(ServiceLocator.provideServiceProvider())
     }
 
-    fun provideNotesRepository(): INotesRepository {
-        return NotesRepository()
+    fun provideNotesRepository(service: INotesApiService): INotesRepository {
+        return NotesRepository(
+            service,
+            ConfigLocator.provideExceptionHandler()
+        )
     }
 
 }
