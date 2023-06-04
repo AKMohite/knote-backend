@@ -53,4 +53,8 @@ class NotesApiService(
         return noteCollection.updateOneById(noteToUpdate.id, noteToUpdate).wasAcknowledged()
     }
 
+    override suspend fun deleteNote(noteId: String): Boolean {
+        return noteCollection.deleteOneById(noteId).wasAcknowledged()
+    }
+
 }

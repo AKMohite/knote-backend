@@ -107,6 +107,32 @@ internal class NotesRepository(
         }
     }
 
+    override suspend fun deleteNote(userId: String, noteId: String): BaseResponse<NoteDTO> {
+        val (note, exist) = checkIfNoteExists(noteId)
+        if (exist && note?.createdBy == userId) {
+            val isDeleted = notesApiService.deleteNote(noteId)
+            if (isDeleted) {
+                val deletedNote = with(note) {
+                    NoteDTO(
+                        id = id,
+                        title = title,
+                        description = description,
+                        color = color,
+//                        createdBy = createdBy,
+                        isDeleted = true,
+                        createdAt = createdAt,
+                        updatedAt = updatedAt
+                    )
+                }
+                return SuccessResponse(HttpStatusCode.OK, deletedNote)
+            } else {
+                throw exceptionHandler.respondWithSomethingWentWrongException()
+            }
+        } else {
+            throw exceptionHandler.respondWithUnauthorizedException(NOT_AUTHORIZED)
+        }
+    }
+
     private suspend fun checkIfNoteExists(noteId: String?): Pair<Note?, Boolean> {
         val note = notesApiService.getNoteById(noteId)
         return Pair(note, note != null)

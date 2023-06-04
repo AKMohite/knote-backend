@@ -13,6 +13,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receiveNullable
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
@@ -45,6 +46,13 @@ internal fun Routing.noteRoutes(domainProvider: IDomainProvider) {
                 throw BadRequestException("Bad request")
             }
             val response = domainProvider.provideUpdateNoteUseCase().invoke(Triple(userID, noteId, request))
+            call.respond(response.statusCode, response)
+        }
+
+        delete(SINGLE_NOTES_ROUTE) {
+            val userID = getUserIdFromToken()
+            val noteId = call.parameters[NOTEID] ?: throw AuthorizationException("Bad call")
+            val response = domainProvider.provideDeleteNoteUseCase().invoke(Pair(userID, noteId))
             call.respond(response.statusCode, response)
         }
     }
