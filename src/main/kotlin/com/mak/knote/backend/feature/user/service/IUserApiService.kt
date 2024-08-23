@@ -1,9 +1,10 @@
 package com.mak.knote.backend.feature.user.service
 
-import com.mak.knote.backend.feature.user.User
+import com.mak.knote.backend.feature.user.UserEntity
 
 internal interface IUserApiService {
-    suspend fun findUserByEmail(email: String): User?
-    suspend fun insertUser(user: User): Boolean
+    suspend fun getUserBy(email: String): UserEntity?
+    suspend fun store(entity: UserEntity): UserEntity?
+    suspend fun getUserById(userId: String): UserEntity?
 
 }

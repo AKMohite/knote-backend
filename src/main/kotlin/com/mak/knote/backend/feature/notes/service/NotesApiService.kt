@@ -1,20 +1,6 @@
 package com.mak.knote.backend.feature.notes.service
 
-import com.mak.knote.backend.feature.notes.Note
-import org.litote.kmongo.ascending
-import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.aggregate
-import org.litote.kmongo.eq
-import org.litote.kmongo.exclude
-import org.litote.kmongo.fields
-import org.litote.kmongo.limit
-import org.litote.kmongo.match
-import org.litote.kmongo.project
-import org.litote.kmongo.skip
-import org.litote.kmongo.sort
-import org.litote.kmongo.util.KMongoUtil
-
-class NotesApiService(
+/*class NotesApiService(
     private val noteCollection: CoroutineCollection<Note>
 ) : INotesApiService {
 
@@ -57,4 +43,4 @@ class NotesApiService(
         return noteCollection.deleteOneById(noteId).wasAcknowledged()
     }
 
-}
+}*/

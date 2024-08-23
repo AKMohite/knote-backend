@@ -5,44 +5,69 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
+import kotlinx.serialization.Serializable
 
 fun Application.configureStatusPages() {
     install(StatusPages) {
         exception<AuthenticationException> { call, cause ->
-            call.respond(HttpStatusCode.Unauthorized, ExceptionResponse(HttpStatusCode.Unauthorized, cause.message.toString()))
+            call.respond(
+                HttpStatusCode.Unauthorized,
+                ExceptionResponse(HttpStatusCode.Unauthorized.value, cause.message.toString())
+            )
         }
         exception<AuthorizationException> { call, cause ->
-            call.respond(HttpStatusCode.Forbidden, ExceptionResponse(HttpStatusCode.Forbidden, cause.message.toString()))
+            call.respond(
+                HttpStatusCode.Forbidden,
+                ExceptionResponse(HttpStatusCode.Forbidden.value, cause.message.toString())
+            )
         }
         exception<BadRequestException> { call, cause ->
-            call.respond(HttpStatusCode.BadRequest, ExceptionResponse(HttpStatusCode.BadRequest, cause.message.toString()))
+            call.respond(
+                HttpStatusCode.BadRequest,
+                ExceptionResponse(HttpStatusCode.BadRequest.value, cause.message.toString())
+            )
         }
         exception<NotFoundException> { call, cause ->
-            call.respond(HttpStatusCode.NotFound, ExceptionResponse(HttpStatusCode.NotFound, cause.message.toString()))
+            call.respond(
+                HttpStatusCode.NotFound,
+                ExceptionResponse(HttpStatusCode.NotFound.value, cause.message.toString())
+            )
         }
         exception<ConflictException> { call, cause ->
-            call.respond(HttpStatusCode.Conflict, ExceptionResponse(HttpStatusCode.Conflict, cause.message.toString()))
+            call.respond(
+                HttpStatusCode.Conflict,
+                ExceptionResponse(HttpStatusCode.Conflict.value, cause.message.toString())
+            )
         }
         exception<SomethingWentWrongException> { call, cause ->
-            call.respond(HttpStatusCode.Conflict, ExceptionResponse(HttpStatusCode.ExpectationFailed, cause.message.toString()))
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                ExceptionResponse(HttpStatusCode.ExpectationFailed.value, cause.message.toString())
+            )
         }
 
         exception<Throwable> { call, cause ->
-            call.respond(HttpStatusCode.InternalServerError, ExceptionResponse(HttpStatusCode.InternalServerError, cause.message.toString()))
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                ExceptionResponse(HttpStatusCode.InternalServerError.value, cause.message.toString())
+            )
         }
     }
 }
 
-class AuthenticationException(message: String?) : RuntimeException(message)
+class AuthenticationException(message: String?) : NoteException(message)
 
-class ConflictException(message: String?) : RuntimeException(message)
+class ConflictException(message: String?) : NoteException(message)
 
-class AuthorizationException(message: String?) : RuntimeException(message)
+class AuthorizationException(message: String?) : NoteException(message)
 
-class BadRequestException(message: String?) : RuntimeException(message)
+class BadRequestException(message: String?) : NoteException(message)
 
-class NotFoundException(message: String?) : RuntimeException(message)
+class NotFoundException(message: String?) : NoteException(message)
 
-class SomethingWentWrongException(message: String?) : RuntimeException(message)
+class SomethingWentWrongException(message: String?) : NoteException(message)
 
-data class ExceptionResponse(val code: HttpStatusCode, val message: String? = null)
+abstract class NoteException(message: String?) : Exception(message)
+
+@Serializable
+data class ExceptionResponse(val code: Int, val message: String? = null)

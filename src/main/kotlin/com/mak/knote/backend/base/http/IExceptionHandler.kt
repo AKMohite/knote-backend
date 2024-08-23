@@ -5,6 +5,8 @@ internal interface IExceptionHandler {
 
     fun respondWithUnauthorizedException(message: String?): Exception
 
+    fun respondWithAuthenticateException(message: String?): Exception
+
     fun respondWithNotFoundException(message: String?): Exception
 
     fun respondWithAlreadyExistException(message: String?): Exception

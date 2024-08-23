@@ -1,5 +1,6 @@
 package com.mak.knote.backend.base.http
 
+import com.mak.knote.backend.base.AuthenticationException
 import com.mak.knote.backend.base.AuthorizationException
 import com.mak.knote.backend.base.BadRequestException
 import com.mak.knote.backend.base.ConflictException
@@ -13,6 +14,10 @@ class ExceptionHandler : IExceptionHandler {
 
     override fun respondWithUnauthorizedException(message: String?): Exception {
         return AuthorizationException(message)
+    }
+
+    override fun respondWithAuthenticateException(message: String?): Exception {
+        return AuthenticationException(message)
     }
 
     override fun respondWithNotFoundException(message: String?): Exception {

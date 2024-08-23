@@ -1,79 +1,83 @@
 package com.mak.knote.backend.feature.auth.repository
 
-import com.mak.knote.backend.base.BaseResponse
-import com.mak.knote.backend.base.SuccessResponse
-import com.mak.knote.backend.base.auth.JwtConfig
+import com.mak.knote.backend.base.auth.IPasswordEncryptor
 import com.mak.knote.backend.base.http.IExceptionHandler
-import com.mak.knote.backend.feature.auth.LoginRequest
-import com.mak.knote.backend.feature.user.User
+import com.mak.knote.backend.common.data.dto.request.LoginDTO
+import com.mak.knote.backend.common.data.dto.request.RefreshTokenDTO
+import com.mak.knote.backend.common.data.dto.request.RegisterDTO
+import com.mak.knote.backend.common.data.dto.response.TokenDTO
+import com.mak.knote.backend.common.data.provider.ITokenProvider
+import com.mak.knote.backend.feature.user.UserMapper
 import com.mak.knote.backend.feature.user.service.IUserApiService
-import com.mak.knote.backend.util.checkHashForPassword
-import com.mak.knote.backend.util.getHashWithSalt
-import io.ktor.http.HttpStatusCode
-import java.util.*
+import com.mak.knote.backend.util.KnoteConstants
+import com.mak.knote.backend.util.internalRun
+import com.mak.knote.backend.util.requireNonNullable
 
 internal class AuthRepository(
-    private val userApiService: IUserApiService,
-    private val jwtConfig: JwtConfig,
-    private val exceptionHandler: IExceptionHandler
+    private val exceptionHandler: IExceptionHandler,
+    private val tokenProvider: ITokenProvider,
+    private val userDAO: IUserApiService,
+    private val userMapper: UserMapper,
+    private val encryptor: IPasswordEncryptor
 ) : IAuthRepository {
-
-    /**
-     * All static constant containing the Error code for [IExceptionHandler]
-     */
-    private companion object {
-        private const val USER_ALREADY_EXIST_MESSAGE = "User already exists, Please login"
-        private const val EITHER_USERNAME_PASSWORD_INCORRECT = "Either username or password is incorrect"
-        private const val NOT_AUTHORIZED = "Not authorised"
-        private const val USER_DONT_EXIST_MESSAGE = "User doesn't exists, Please register"
-        private const val SOMETHING_WENT_WRONG = "Something went wrong. Please try again"
-    }
-
-    override suspend fun signup(authRequest: LoginRequest): BaseResponse<String> {
-        return if (checkIfUsersExist(authRequest.email)) {
-            throw exceptionHandler.respondWithAlreadyExistException(USER_ALREADY_EXIST_MESSAGE)
-        } else {
-            val hashPassword = getHashWithSalt(authRequest.password)
-            val nowInstant = Date().toInstant().toString()
-            val user = User(
-                email = authRequest.email,
-                passwordHash = hashPassword,
-                createdAt = nowInstant,
-                updatedAt = nowInstant
-            )
-            val responseIsSuccessful = userApiService.insertUser(user)
-            when {
-                responseIsSuccessful -> SuccessResponse(
-                    data = jwtConfig.makeAccessToken(user.id),
-                    statusCode = HttpStatusCode.Created
-                )
-
-                else -> throw exceptionHandler.respondWithGenericException(SOMETHING_WENT_WRONG)
+    override suspend fun register(registerRequest: RegisterDTO): TokenDTO {
+        return internalRun {
+            registerRequest.validateRequest()?.let { errorMessage ->
+                throw exceptionHandler.respondWithBadRequestException(errorMessage)
             }
+            val entity = userDAO.getUserBy(registerRequest.email.requireNonNullable())
+            if (entity != null) // email found in DB
+                throw exceptionHandler.respondWithAlreadyExistException("Account already registered. Please login.")
+//            TODO send email verification email to confirm account registration
+            val password = encryptor.generateHash(registerRequest.password.requireNonNullable())
+            val newEntity = userMapper.jsonToEntity(registerRequest).copy(password = password)
+            val storedUser = userDAO.store(newEntity) ?: // unable to store in DB
+            throw exceptionHandler.respondWithSomethingWentWrongException("Cannot create account. Please try again later.")
+            val user = userMapper.entityToModel(storedUser)
+            val (accessToken, refreshToken) = tokenProvider.createTokens(user)
+            TokenDTO(
+                accessToken,
+                refreshToken
+            )
         }
     }
 
-    override suspend fun loginUser(request: LoginRequest): BaseResponse<String> {
-        return if (checkIfUsersExist(request.email)) { // TODO duplicate condns
-            val user: User? = userApiService.findUserByEmail(request.email)
-            if (user != null) { // TODO duplicate condns
-                val hashedPasswordIsSame = user.passwordHash?.let { checkHashForPassword(request.password, it) }
-                when (hashedPasswordIsSame) {
-                    true -> SuccessResponse(
-                        data = jwtConfig.makeAccessToken(user.id),
-                        statusCode = HttpStatusCode.OK
-                    )
-
-                    else -> throw exceptionHandler.respondWithUnauthorizedException(EITHER_USERNAME_PASSWORD_INCORRECT)
-                }
-            } else throw exceptionHandler.respondWithUnauthorizedException(NOT_AUTHORIZED)
-        } else {
-            throw exceptionHandler.respondWithUnauthorizedException(USER_DONT_EXIST_MESSAGE)
+    override suspend fun login(loginRequest: LoginDTO): TokenDTO = internalRun {
+        loginRequest.validateRequest()?.let { errorMessage ->
+            throw exceptionHandler.respondWithBadRequestException(errorMessage)
         }
+        val entity = userDAO.getUserBy(loginRequest.email.requireNonNullable()) ?: // account not registered
+        throw exceptionHandler.respondWithNotFoundException("Account not registered. Please register your account.")
+        if (!encryptor.validatePassword(
+                entity.password,
+                loginRequest.password.requireNonNullable()
+            )
+        ) // password does not match
+            throw exceptionHandler.respondWithUnauthorizedException("Invalid credentials. Please check and try again.")
+        val user = userMapper.entityToModel(entity)
+        val (accessToken, refreshToken) = tokenProvider.createTokens(user)
+        TokenDTO(
+            accessToken,
+            refreshToken
+        )
     }
 
-
-    private suspend fun checkIfUsersExist(email: String): Boolean {
-        return userApiService.findUserByEmail(email) != null
+    override suspend fun refreshToken(request: RefreshTokenDTO): TokenDTO = internalRun {
+        request.validateRequest()?.let { errorMessage ->
+            throw exceptionHandler.respondWithBadRequestException(errorMessage)
+        }
+        val refreshToken = request.token.requireNonNullable()
+        val userId = tokenProvider.verifyToken(refreshToken) ?: // token is not proper
+        throw exceptionHandler.respondWithUnauthorizedException("Authentication failed. Please logout")
+        if (tokenProvider.verifyTokenType(refreshToken) != KnoteConstants.REFRESH_TOKEN_TYPE) // access type does not match
+            throw exceptionHandler.respondWithUnauthorizedException("Authentication failed. Please logout")
+        val entity = userDAO.getUserById(userId) ?: // user id from token is not found in DB
+        throw exceptionHandler.respondWithUnauthorizedException("Authentication failed. Please logout")
+        val user = userMapper.entityToModel(entity)
+        val (accessToken, newRefreshToken) = tokenProvider.createTokens(user)
+        TokenDTO(
+            accessToken,
+            newRefreshToken
+        )
     }
 }
