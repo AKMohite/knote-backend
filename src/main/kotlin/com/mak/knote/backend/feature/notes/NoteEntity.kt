@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 
 data class NoteEntity(
     @BsonId
-    val id: String = ObjectId().toString(),
+    val _id: String = ObjectId().toString(),
     val title: String,
     val description: String,
     val color: String,

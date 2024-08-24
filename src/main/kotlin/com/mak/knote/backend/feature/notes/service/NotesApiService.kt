@@ -37,18 +37,18 @@ class NotesApiService(
     override suspend fun getNoteById(noteId: String?): NoteEntity? = withContext(Dispatchers.IO) {
         return@withContext noteId?.let { id ->
             collection.find(
-                Filters.and(Filters.eq(NoteEntity::id.name, id))
+                Filters.and(Filters.eq(NoteEntity::_id.name, id))
             )
         }?.firstOrNull()
     }
 
     override suspend fun updateNote(noteToUpdate: NoteEntity): Boolean = withContext(Dispatchers.IO) {
-        val filter = Filters.eq(NoteEntity::id.name, noteToUpdate.id)
+        val filter = Filters.eq(NoteEntity::_id.name, noteToUpdate._id)
         return@withContext collection.replaceOne(filter, noteToUpdate).wasAcknowledged()
     }
 
     override suspend fun deleteNote(noteId: String): Boolean = withContext(Dispatchers.IO) {
-        return@withContext collection.deleteOne(Filters.eq(NoteEntity::id.name, noteId)).wasAcknowledged()
+        return@withContext collection.deleteOne(Filters.eq(NoteEntity::_id.name, noteId)).wasAcknowledged()
     }
 
 }
