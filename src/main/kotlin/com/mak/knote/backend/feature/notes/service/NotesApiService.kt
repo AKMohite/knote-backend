@@ -5,6 +5,8 @@ import com.mak.knote.backend.util.KnoteConstants
 import com.mongodb.client.model.Filters
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 
 
@@ -19,6 +21,7 @@ class NotesApiService(
     }
 
     override suspend fun insertNote(userId: String, note: NoteEntity): Boolean = withContext(Dispatchers.IO) {
+//        collection.insertOne(note).insertedId.asObjectId().value
         return@withContext collection.insertOne(note).wasAcknowledged()
     }
 
@@ -27,30 +30,25 @@ class NotesApiService(
         val skips = page.minus(ONE) * limit
 
             val filter = Filters.and(Filters.eq(NoteEntity::createdBy.name, userId))
-            val notes = collection.find(filter)
-//        val count = collection.countDocuments(filter).toInt()
-//        return Pair(
-//            collection.aggregate<NoteEntity>(
-//                skip(skips),
-//                limit(limit),
-//                project(fields),
-//                sort(ascending(NoteEntity::createdAt)),
-//                match(NoteEntity::createdBy eq userId)
-//            ).toList(),
-//            count
-//        )
+            val notes = collection.find(filter).toList()
+            return@withContext Pair(notes, 20) // TODO count is not computed
     }
 
     override suspend fun getNoteById(noteId: String?): NoteEntity? = withContext(Dispatchers.IO) {
-        return noteId?.let { collection.find(Filters.and(Filters.eq(NoteEntity::id.name, it))) }
+        return@withContext noteId?.let { id ->
+            collection.find(
+                Filters.and(Filters.eq(NoteEntity::id.name, id))
+            )
+        }?.firstOrNull()
     }
 
     override suspend fun updateNote(noteToUpdate: NoteEntity): Boolean = withContext(Dispatchers.IO) {
-        return@withContext collection.updateOneById(noteToUpdate.id, noteToUpdate).wasAcknowledged()
+        val filter = Filters.eq(NoteEntity::id.name, noteToUpdate.id)
+        return@withContext collection.replaceOne(filter, noteToUpdate).wasAcknowledged()
     }
 
     override suspend fun deleteNote(noteId: String): Boolean = withContext(Dispatchers.IO) {
-        return@withContext collection.deleteOneById(noteId).wasAcknowledged()
+        return@withContext collection.deleteOne(Filters.eq(NoteEntity::id.name, noteId)).wasAcknowledged()
     }
 
 }

@@ -1,7 +1,9 @@
 package com.mak.knote.backend.feature.notes
 
+import com.mak.knote.backend.base.PaginatedResponse
 import com.mak.knote.backend.base.http.IExceptionHandler
 import com.mak.knote.backend.feature.notes.repository.INotesRepository
+import com.mak.knote.backend.util.KnoteConstants
 import com.mak.knote.backend.util.KnoteConstants.NOTEID
 import com.mak.knote.backend.util.KnoteConstants.NOTES_ROUTE
 import com.mak.knote.backend.util.KnoteConstants.PAGINATION_LIMIT
@@ -23,13 +25,14 @@ internal fun Routing.noteRoutes() {
     val notesRepo by inject<INotesRepository>()
     val exceptionHandler by inject<IExceptionHandler>()
 
-    authenticate {
+    authenticate(KnoteConstants.JWT_NAME) {
         get(NOTES_ROUTE) {
             val userID = getUserIdFromToken()
             val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
             val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: PAGINATION_LIMIT
             val response = notesRepo.getNotesForUser(userID, page, limit)
-            call.respond(response.statusCode, response)
+            val paginatedResponse = (response as? PaginatedResponse)?.paginatedResponse ?: ""
+            call.respond(response.statusCode, paginatedResponse)
         }
 
         post(NOTES_ROUTE) {

@@ -1,6 +1,7 @@
 package com.mak.knote.backend.feature.notes.repository
 
 import com.mak.knote.backend.base.BaseResponse
+import com.mak.knote.backend.base.PaginatedDTO
 import com.mak.knote.backend.base.PaginatedResponse
 import com.mak.knote.backend.base.SuccessResponse
 import com.mak.knote.backend.base.http.IExceptionHandler
@@ -104,7 +105,11 @@ internal class NotesRepository(
             val totalPages = if (remainingModDocuments != 0) divCount.plus(ONE) else divCount
             val next = if (response.count() == limit) page.plus(ONE) else null
             val prev = if (page > ONE) page.minus(ONE) else null
-            PaginatedResponse(statusCode = HttpStatusCode.OK, prev, next, totalCount, totalPages, response)
+            PaginatedResponse(
+                statusCode = HttpStatusCode.OK, paginatedResponse = PaginatedDTO(
+                    prev, next, totalCount, totalPages, response
+                )
+            )
         } else {
             throw exceptionHandler.respondWithGenericException(PLEASE_CHECK_THE_PARAMS)
         }

@@ -19,7 +19,7 @@ fun Application.configureSecurity() {
     val jwtVerifier = tokenProvider.verifier
 
     authentication {
-        jwt(KnoteConstants.APP_NAME) {
+        jwt(KnoteConstants.JWT_NAME) {
             verifier(jwtVerifier)
 
             challenge { _, _ ->

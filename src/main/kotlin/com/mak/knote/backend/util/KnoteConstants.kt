@@ -15,6 +15,7 @@ internal object KnoteConstants {
     const val PAGINATION_LIMIT = 30
 
     //    JWT
+    const val JWT_NAME = "knote-auth"
     const val ACCESS_TOKEN_TYPE = "accessToken"
     const val REFRESH_TOKEN_TYPE = "refreshToken"
 
