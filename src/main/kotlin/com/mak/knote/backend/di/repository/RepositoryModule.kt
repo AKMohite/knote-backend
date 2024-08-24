@@ -2,6 +2,10 @@ package com.mak.knote.backend.di.repository
 
 import com.mak.knote.backend.feature.auth.repository.AuthRepository
 import com.mak.knote.backend.feature.auth.repository.IAuthRepository
+import com.mak.knote.backend.feature.notes.repository.INotesRepository
+import com.mak.knote.backend.feature.notes.repository.NotesRepository
+import com.mak.knote.backend.feature.notes.service.INotesApiService
+import com.mak.knote.backend.feature.notes.service.NotesApiService
 import com.mak.knote.backend.feature.user.UserMapper
 import com.mak.knote.backend.feature.user.repository.IUserRepository
 import com.mak.knote.backend.feature.user.repository.UserRepository
@@ -27,6 +31,14 @@ object RepositoryModule {
                 userDAO = get(),
                 exceptionHandler = get(),
                 mapper = UserMapper
+            )
+        }
+
+        single<INotesApiService> { NotesApiService(db = get()) }
+        single<INotesRepository> {
+            NotesRepository(
+                notesApiService = get(),
+                exceptionHandler = get()
             )
         }
     }

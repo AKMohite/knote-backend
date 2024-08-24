@@ -4,10 +4,11 @@ import com.mak.knote.backend.base.BaseResponse
 import com.mak.knote.backend.base.PaginatedResponse
 import com.mak.knote.backend.base.SuccessResponse
 import com.mak.knote.backend.base.http.IExceptionHandler
-import com.mak.knote.backend.feature.notes.Note
 import com.mak.knote.backend.feature.notes.NoteDTO
+import com.mak.knote.backend.feature.notes.NoteEntity
 import com.mak.knote.backend.feature.notes.service.INotesApiService
 import com.mak.knote.backend.feature.notes.toNoteDTO
+import com.mak.knote.backend.util.internalRun
 import io.ktor.http.HttpStatusCode
 import java.util.*
 
@@ -23,9 +24,9 @@ internal class NotesRepository(
         private const val ONE = 1
     }
 
-    override suspend fun createNote(userId: String, note: NoteDTO): BaseResponse<NoteDTO> {
+    override suspend fun createNote(userId: String, note: NoteDTO): BaseResponse<NoteDTO> = internalRun {
         if (userId.isNotBlank()) {
-            val noteToAdd = Note(
+            val noteToAdd = NoteEntity(
                 title = note.title,
                 description = note.description,
                 color = note.color,
@@ -49,7 +50,7 @@ internal class NotesRepository(
                         updatedAt = updatedAt
                     )
                 }
-                return SuccessResponse(statusCode = HttpStatusCode.Created, addedNote)
+                SuccessResponse(statusCode = HttpStatusCode.Created, addedNote)
             } else {
                 throw exceptionHandler.respondWithSomethingWentWrongException()
             }
@@ -58,14 +59,15 @@ internal class NotesRepository(
         }
     }
 
-    override suspend fun updateNote(userId: String, noteId: String, noteDto: NoteDTO): BaseResponse<NoteDTO> {
+    override suspend fun updateNote(userId: String, noteId: String, noteDTO: NoteDTO): BaseResponse<NoteDTO> =
+        internalRun {
         val (note, exist) = checkIfNoteExists(noteId)
         if (exist && note?.createdBy == userId) {
             val noteToUpdate = note.copy(
-                title = noteDto.title,
-                description = noteDto.description,
-                color = noteDto.color,
-                updatedAt = noteDto.updatedAt ?: Date().toInstant().toString()
+                title = noteDTO.title,
+                description = noteDTO.description,
+                color = noteDTO.color,
+                updatedAt = noteDTO.updatedAt ?: Date().toInstant().toString()
             )
             val isUpdated = notesApiService.updateNote(noteToUpdate)
             if (isUpdated) {
@@ -81,7 +83,7 @@ internal class NotesRepository(
                         updatedAt = updatedAt
                     )
                 }
-                return SuccessResponse(HttpStatusCode.OK, updatedNote)
+                SuccessResponse(HttpStatusCode.OK, updatedNote)
             } else {
                 throw exceptionHandler.respondWithSomethingWentWrongException()
             }
@@ -90,7 +92,8 @@ internal class NotesRepository(
         }
     }
 
-    override suspend fun getNotesForUser(userId: String, page: Int, limit: Int): BaseResponse<List<NoteDTO>> {
+    override suspend fun getNotesForUser(userId: String, page: Int, limit: Int): BaseResponse<List<NoteDTO>> =
+        internalRun {
         if (page > ZERO && limit > ZERO) {
             val (notes, totalCount) = notesApiService.getNotesForUser(userId, page, limit)
             val response: List<NoteDTO> = notes.map {
@@ -101,13 +104,13 @@ internal class NotesRepository(
             val totalPages = if (remainingModDocuments != 0) divCount.plus(ONE) else divCount
             val next = if (response.count() == limit) page.plus(ONE) else null
             val prev = if (page > ONE) page.minus(ONE) else null
-            return PaginatedResponse(statusCode = HttpStatusCode.OK, prev, next, totalCount, totalPages, response)
+            PaginatedResponse(statusCode = HttpStatusCode.OK, prev, next, totalCount, totalPages, response)
         } else {
             throw exceptionHandler.respondWithGenericException(PLEASE_CHECK_THE_PARAMS)
         }
     }
 
-    override suspend fun deleteNote(userId: String, noteId: String): BaseResponse<NoteDTO> {
+    override suspend fun deleteNote(userId: String, noteId: String): BaseResponse<NoteDTO> = internalRun {
         val (note, exist) = checkIfNoteExists(noteId)
         if (exist && note?.createdBy == userId) {
             val isDeleted = notesApiService.deleteNote(noteId)
@@ -124,7 +127,7 @@ internal class NotesRepository(
                         updatedAt = updatedAt
                     )
                 }
-                return SuccessResponse(HttpStatusCode.OK, deletedNote)
+                SuccessResponse(HttpStatusCode.NoContent, deletedNote)
             } else {
                 throw exceptionHandler.respondWithSomethingWentWrongException()
             }
@@ -133,7 +136,7 @@ internal class NotesRepository(
         }
     }
 
-    private suspend fun checkIfNoteExists(noteId: String?): Pair<Note?, Boolean> {
+    private suspend fun checkIfNoteExists(noteId: String?): Pair<NoteEntity?, Boolean> {
         val note = notesApiService.getNoteById(noteId)
         return Pair(note, note != null)
     }

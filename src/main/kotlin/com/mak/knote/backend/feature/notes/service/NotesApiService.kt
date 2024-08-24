@@ -1,46 +1,56 @@
 package com.mak.knote.backend.feature.notes.service
 
-/*class NotesApiService(
-    private val noteCollection: CoroutineCollection<Note>
+import com.mak.knote.backend.feature.notes.NoteEntity
+import com.mak.knote.backend.util.KnoteConstants
+import com.mongodb.client.model.Filters
+import com.mongodb.kotlin.client.coroutine.MongoDatabase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+
+class NotesApiService(
+    db: MongoDatabase
 ) : INotesApiService {
+
+    private val collection = db.getCollection<NoteEntity>(KnoteConstants.NOTES_TABLE)
 
     private companion object {
         const val ONE = 1
     }
 
-    override suspend fun insertNote(userId: String, note: Note): Boolean {
-        return noteCollection.insertOne(note).wasAcknowledged()
+    override suspend fun insertNote(userId: String, note: NoteEntity): Boolean = withContext(Dispatchers.IO) {
+        return@withContext collection.insertOne(note).wasAcknowledged()
     }
 
-    override suspend fun getNotesForUser(userId: String, page: Int, limit: Int): Pair<List<Note>, Int> {
+    override suspend fun getNotesForUser(userId: String, page: Int, limit: Int): Pair<List<NoteEntity>, Int> =
+        withContext(Dispatchers.IO) {
         val skips = page.minus(ONE) * limit
 
-        val fields = fields(exclude(Note::isDeleted))
-        val filter =
-            KMongoUtil.toBson("""{ "createdBy": "$userId", "isDeleted": false } """) // TODO send deleted notes too??
-        val count = noteCollection.countDocuments(filter).toInt()
-        return Pair(
-            noteCollection.aggregate<Note>(
-                skip(skips),
-                limit(limit),
-                project(fields),
-                sort(ascending(Note::createdAt)),
-                match(Note::createdBy eq userId)
-            ).toList(),
-            count
-        )
+            val filter = Filters.and(Filters.eq(NoteEntity::createdBy.name, userId))
+            val notes = collection.find(filter)
+//        val count = collection.countDocuments(filter).toInt()
+//        return Pair(
+//            collection.aggregate<NoteEntity>(
+//                skip(skips),
+//                limit(limit),
+//                project(fields),
+//                sort(ascending(NoteEntity::createdAt)),
+//                match(NoteEntity::createdBy eq userId)
+//            ).toList(),
+//            count
+//        )
     }
 
-    override suspend fun getNoteById(noteId: String?): Note? {
-        return noteId?.let { noteCollection.findOneById(it) }
+    override suspend fun getNoteById(noteId: String?): NoteEntity? = withContext(Dispatchers.IO) {
+        return noteId?.let { collection.find(Filters.and(Filters.eq(NoteEntity::id.name, it))) }
     }
 
-    override suspend fun updateNote(noteToUpdate: Note): Boolean {
-        return noteCollection.updateOneById(noteToUpdate.id, noteToUpdate).wasAcknowledged()
+    override suspend fun updateNote(noteToUpdate: NoteEntity): Boolean = withContext(Dispatchers.IO) {
+        return@withContext collection.updateOneById(noteToUpdate.id, noteToUpdate).wasAcknowledged()
     }
 
-    override suspend fun deleteNote(noteId: String): Boolean {
-        return noteCollection.deleteOneById(noteId).wasAcknowledged()
+    override suspend fun deleteNote(noteId: String): Boolean = withContext(Dispatchers.IO) {
+        return@withContext collection.deleteOneById(noteId).wasAcknowledged()
     }
 
-}*/
+}

@@ -3,7 +3,7 @@ package com.mak.knote.backend.feature.notes
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
 
-data class Note(
+data class NoteEntity(
     @BsonId
     val id: String = ObjectId().toString(),
     val title: String,

@@ -21,4 +21,5 @@ internal object KnoteConstants {
     //    DB
     const val DATABASE_NAME = "mak_knotes"
     const val USERS_TABLE = "users"
+    const val NOTES_TABLE = "notes"
 }
