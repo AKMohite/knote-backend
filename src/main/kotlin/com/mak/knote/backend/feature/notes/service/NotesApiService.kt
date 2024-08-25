@@ -30,6 +30,7 @@ class NotesApiService(
         val skips = page.minus(ONE) * limit
 
             val filter = Filters.and(Filters.eq(NoteEntity::createdBy.name, userId))
+//            TODO use skip and limit
             val notes = collection.find(filter).toList()
             return@withContext Pair(notes, 20) // TODO count is not computed
     }
